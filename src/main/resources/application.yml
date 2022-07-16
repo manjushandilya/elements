@@ -3,7 +3,7 @@ server:
 
 management:
   security:
-    enabled: false
+    enabled: true
 endpoints:
   shutdown:
     enabled: true
@@ -14,4 +14,5 @@ spring:
       host: localhost
       port: 27017
       database: elements
-
+      embedded:
+        version: 4.4.14
