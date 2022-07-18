@@ -5,18 +5,15 @@ import com.ads.elements.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class ClientApplication {
+public class ElementsApplication {
 
     public static void main(String[] args) {
-        try (final ConfigurableApplicationContext run = SpringApplication.run(ClientApplication.class, args)) {
-            System.out.println("Application running...");
-        }
+        SpringApplication.run(ElementsApplication.class, args);
     }
 
     @Bean

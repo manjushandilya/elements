@@ -31,14 +31,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         return userRepository.findByEmail(email);
     }
 
-    public void saveUser(final User user) {
+    public void saveUserAsClient(final User user) {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         user.setEnabled(true);
 
-        final Role admin = roleRepository.findByRole("ADMIN");
-        final Set<Role> roles = new HashSet<>();
-        roles.add(admin);
-        user.setRoles(roles);
+        final Role admin = roleRepository.findByRole("CLIENT");
+        user.setRoles(new HashSet<>(Arrays.asList(admin)));
         userRepository.save(user);
     }
 

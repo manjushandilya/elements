@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -25,33 +26,41 @@ public class LoginController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/signup", method = RequestMethod.GET)
-    public ModelAndView signup() {
+    @RequestMapping(value = "/register", method = RequestMethod.GET)
+    public ModelAndView register() {
         final ModelAndView modelAndView = new ModelAndView();
         final User user = new User();
         modelAndView.addObject("user", user);
-        modelAndView.setViewName("signup");
+        modelAndView.setViewName("register");
         return modelAndView;
     }
 
-    @RequestMapping(value = "/signup", method = RequestMethod.POST)
-    public ModelAndView createNewUser(@Validated final User user, final BindingResult bindingResult) {
-        final ModelAndView modelAndView = new ModelAndView();
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    public ModelAndView register(@ModelAttribute @Validated final User user, final BindingResult bindingResult) {
+        final ModelAndView registerView = new ModelAndView("register");
+        final ModelAndView loginView = new ModelAndView("login");
+
+        if (bindingResult.hasErrors()) {
+            bindingResult.reject("registration.error", "Correct the errors and try again");
+            return registerView;
+        }
+
         final User userExists = userService.findUserByEmail(user.getEmail());
         if (userExists != null) {
-            bindingResult
-                    .rejectValue("email", "error.user",
-                            "There is already a user registered with the username provided");
+            bindingResult.reject("registration.error", "Correct the errors and try again");
+            bindingResult.rejectValue("email", "error.user","There is already a user registered with the supplied email");
+            return registerView;
         }
-        if (bindingResult.hasErrors()) {
-            modelAndView.setViewName("signup");
-        } else {
-            userService.saveUser(user);
-            modelAndView.addObject("successMessage", "User has been registered successfully");
-            modelAndView.addObject("user", new User());
-            modelAndView.setViewName("login");
+
+        if (!user.getPassword().equals(user.getConfirmPassword())) {
+            bindingResult.rejectValue("confirmPassword", "error.user", "Passwords don't match");
+            return registerView;
         }
-        return modelAndView;
+
+        userService.saveUserAsClient(user);
+        loginView.addObject("successMessage", "User has been registered successfully");
+        loginView.addObject("user", new User());
+        return loginView;
     }
 
     @RequestMapping(value = "/dashboard", method = RequestMethod.GET)
@@ -60,7 +69,7 @@ public class LoginController {
         final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final User user = userService.findUserByEmail(auth.getName());
         modelAndView.addObject("currentUser", user);
-        modelAndView.addObject("fullName", "Welcome " + user.getFullname());
+        modelAndView.addObject("fullName", "Welcome " + user.getFirstName() + " " + user.getLastName());
         modelAndView.addObject("adminMessage", "Content available only for users with ADMIN role");
         modelAndView.setViewName("dashboard");
         return modelAndView;
